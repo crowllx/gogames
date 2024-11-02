@@ -35,7 +35,10 @@ func NewGame() *Game {
 		player:    NewPlayer(),
 		camera:    geometry.Vector{X: 0, Y: 0},
 		pipes:     []*Pipe{},
-		colliders: make([]geometry.Shape, 0),
+		colliders: []geometry.Shape{
+            geometry.NewRect(0, 0, 1600, 0),
+            geometry.NewRect(0,900, 1600, 900),
+        },
 		canSpawn:  true,
 		startTime: time.Now(),
 		duration:  time.Duration(0),

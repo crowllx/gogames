@@ -42,11 +42,7 @@ func (p *Player) Draw(screen *ebiten.Image, camera geometry.Vector) {
 func (p *Player) Update() (float64, float64) {
 	p.velocity.X = 100
 	// apply gravity
-	if p.position.Y < 900 {
-		p.velocity.Y += float64(gravity) * dt
-	} else {
-		p.velocity.Y = 0
-	}
+    p.velocity.Y += float64(gravity) * dt
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		p.velocity.Y = -250
 	}
