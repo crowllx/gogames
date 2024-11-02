@@ -3,16 +3,19 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"goflappy/assets"
 	"log"
 	"math"
 	"math/rand/v2"
 	"time"
-    
-    "github.com/crowllx/gogames/audio"
+
 	"github.com/crowllx/geometry"
+	"github.com/crowllx/gogames/audio"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/colornames"
 	"golang.org/x/image/font/gofont/gomono"
 )
 
@@ -29,22 +32,26 @@ func randRange(min, max int) int {
 	return rand.IntN(max+1-min) + min
 }
 func NewGame() *Game {
+
 	g := Game{
-		width:     1600,
-		height:    900,
-		gravity:   800,
-		player:    NewPlayer(),
-		camera:    geometry.Vector{X: 0, Y: 0},
-		pipes:     []*Pipe{},
+		width:   1600,
+		height:  900,
+		gravity: 800,
+		player:  NewPlayer(),
+		camera:  geometry.Vector{X: 0, Y: 0},
+		pipes:   []*Pipe{},
 		colliders: []geometry.Shape{
-            geometry.NewRect(0, 0, 1600, 0),
-            geometry.NewRect(0,900, 1600, 900),
-        },
+			&geometry.BB{-200, 0, 1600, 0},
+			&geometry.BB{-200, 900, 1600, 900},
+		},
 		canSpawn:  true,
 		startTime: time.Now(),
 		duration:  time.Duration(0),
 		lastSpawn: 0,
 	}
+	g.bgm = audio.NewSource(&g.player)
+	g.bgm.AddController("bgm", assets.Bgm, true)
+	g.bgm.Play("bgm")
 	return &g
 }
 
@@ -61,7 +68,7 @@ type Game struct {
 	duration   time.Duration
 	textSource *text.GoTextFaceSource
 	lastSpawn  int
-
+	bgm        *audio.AudioSource
 }
 
 // Draw implements ebiten.Game.
@@ -69,17 +76,32 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(
 		screen,
 		fmt.Sprintf(
-			"x: %f\n y: %f\n # pipes: %d\n # colliders: %d",
+			"x: %f\n y: %f\n # pipes: %d\n # colliders: %d\n ceil: %v\n floor: %v\n",
 			g.player.position.X,
 			g.player.position.Y,
 			len(g.pipes),
 			len(g.colliders),
+			g.colliders[0],
+			g.colliders[1],
 		),
 	)
 	// object drawing
 	g.player.Draw(screen, g.camera)
 	for _, pipe := range g.pipes {
 		pipe.Draw(screen, g.camera)
+	}
+	for _, collider := range g.colliders {
+		bb := collider.BB()
+		vector.StrokeRect(
+			screen,
+			float32(bb.L+g.camera.X),
+			float32(bb.T),
+			float32(bb.R-bb.L),
+			float32(bb.B-bb.T),
+			2,
+			colornames.Lavender,
+			false,
+		)
 	}
 
 	// text display
@@ -88,7 +110,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		Size:   24,
 	}
 	opts := &text.DrawOptions{}
-	opts.GeoM.Translate(50, 50)
+	opts.GeoM.Translate(250, 150)
 	minutes := g.duration.Seconds() / 60
 	seconds := math.Mod(g.duration.Seconds(), 60)
 	str := fmt.Sprintf("%02d:%02d", int(minutes), int(seconds))
@@ -107,7 +129,7 @@ func (g *Game) Update() error {
 	// if g.player.position.X > 1600 {
 	// 	g.resetXPosition()
 	// }
-	g.camera.X = -g.player.position.X + float64(g.width/4.0)
+	updateCameraPosition(&g.camera, g.colliders, g.player.position.X, g.width)
 	dx, dy := g.player.Update()
 
 	if g.player.CheckCollisions(g.colliders, geometry.NewVector(dx, 0)) {
@@ -119,6 +141,10 @@ func (g *Game) Update() error {
 	}
 
 	g.player.Move(dx, dy)
+
+	// move ceiling and floor
+	g.colliders[0].Translate(geometry.NewVector(dx, 0))
+	g.colliders[1].Translate(geometry.NewVector(dx, 0))
 
 	fmt.Printf("%d\n", g.lastSpawn-int(1600-g.camera.X))
 	if g.canSpawn && g.lastSpawn-int(1600-g.camera.X) < -250 {
@@ -145,13 +171,17 @@ func (g *Game) Update() error {
 		)
 	}
 
-    //remove off screen pipes
+	//remove off screen pipes
 	if g.pipes[0].position+30+int(g.camera.X) < 0 {
 		g.pipes = g.pipes[1:]
-		g.colliders = g.colliders[2:]
+		g.colliders = append(g.colliders[:2], g.colliders[4:]...)
 	}
 	// camera
 	return nil
+}
+
+func updateCameraPosition(camera *geometry.Vector, colliders []geometry.Shape, dx float64, width int) {
+	camera.X = -dx + float64(width/4.0)
 }
 
 var _ ebiten.Game = &Game{}

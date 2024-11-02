@@ -5,22 +5,19 @@ import (
 )
 
 type Vertex struct {
-    X, Y int
+	X, Y int
 }
 
 type Shape interface{}
 
-
 type Circle struct {
-    cx, cy, r int
+	cx, cy, r int
 }
 
 type ConvexPolygon struct {
-
 }
 
 type BoundingBox struct {
-    bb image.Rectangle
-    shape Shape
-    
+	bb    image.Rectangle
+	shape Shape
 }

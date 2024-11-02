@@ -42,7 +42,7 @@ func (p *Player) Draw(screen *ebiten.Image, camera geometry.Vector) {
 func (p *Player) Update() (float64, float64) {
 	p.velocity.X = 100
 	// apply gravity
-    p.velocity.Y += float64(gravity) * dt
+	p.velocity.Y += float64(gravity) * dt
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		p.velocity.Y = -250
 	}
@@ -55,16 +55,20 @@ func (p *Player) CheckCollisions(shapes []geometry.Shape, v geometry.Vector) boo
 	p.shape.Translate(v)
 	for _, s := range shapes {
 		if p.shape.Collides(s) {
-            p.shape.Translate(v.Neg())
-            return true
+			p.shape.Translate(v.Neg())
+			return true
 		}
 	}
-    return false
+	return false
 }
 
 func (p *Player) Move(dx, dy float64) {
 	p.position.X += dx
 	p.position.Y += dy
+}
+
+func (p *Player) Position() (float64, float64) {
+	return p.position.X, p.position.Y
 }
 
 type Player struct {

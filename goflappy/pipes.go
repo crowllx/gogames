@@ -57,16 +57,4 @@ func (p *Pipe) Draw(screen *ebiten.Image, camera geometry.Vector) {
 		false,
 	)
 
-	for _, shape := range p.shapes {
-		vector.StrokeRect(
-			screen,
-			float32(shape.L + camera.X),
-			float32(shape.T),
-			float32(shape.R-shape.L),
-			float32(shape.B-shape.T),
-			2,
-			colornames.Lavender,
-			false,
-		)
-	}
 }
