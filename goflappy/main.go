@@ -64,11 +64,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(
 		screen,
 		fmt.Sprintf(
-            "x: %f\n y: %f\n # pipes: %d\n # colliders: %d",
+			"x: %f\n y: %f\n # pipes: %d\n # colliders: %d",
 			g.player.position.X,
 			g.player.position.Y,
-            len(g.pipes),
-            len(g.colliders),
+			len(g.pipes),
+			len(g.colliders),
 		),
 	)
 	// object drawing
@@ -138,6 +138,12 @@ func (g *Game) Update() error {
 			newPipe.openingStart,
 			duration,
 		)
+	}
+
+    //remove off screen pipes
+	if g.pipes[0].position+30+int(g.camera.X) < 0 {
+		g.pipes = g.pipes[1:]
+		g.colliders = g.colliders[2:]
 	}
 	// camera
 	return nil
