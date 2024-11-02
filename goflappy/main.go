@@ -7,7 +7,8 @@ import (
 	"math"
 	"math/rand/v2"
 	"time"
-
+    
+    "github.com/crowllx/gogames/audio"
 	"github.com/crowllx/geometry"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -60,6 +61,7 @@ type Game struct {
 	duration   time.Duration
 	textSource *text.GoTextFaceSource
 	lastSpawn  int
+
 }
 
 // Draw implements ebiten.Game.
