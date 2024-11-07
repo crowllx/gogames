@@ -48,6 +48,7 @@ func NewGame() *Game {
 		startTime: time.Now(),
 		duration:  time.Duration(0),
 		lastSpawn: 0,
+        parralax: CreateParralax(),
 	}
 	g.bgm = audio.NewSource(&g.player)
 	g.bgm.AddController("bgm", assets.Bgm, true)
@@ -69,6 +70,7 @@ type Game struct {
 	textSource *text.GoTextFaceSource
 	lastSpawn  int
 	bgm        *audio.AudioSource
+	parralax   *ParralaxBackground
 }
 
 // Draw implements ebiten.Game.
@@ -85,6 +87,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			g.colliders[1],
 		),
 	)
+    g.parralax.DrawBG(screen)
+    g.parralax.DrawFG(screen)
 	// object drawing
 	g.player.Draw(screen, g.camera)
 	for _, pipe := range g.pipes {
@@ -141,12 +145,12 @@ func (g *Game) Update() error {
 	}
 
 	g.player.Move(dx, dy)
+    g.parralax.Move(dx)
 
 	// move ceiling and floor
 	g.colliders[0].Translate(geometry.NewVector(dx, 0))
 	g.colliders[1].Translate(geometry.NewVector(dx, 0))
 
-	fmt.Printf("%d\n", g.lastSpawn-int(1600-g.camera.X))
 	if g.canSpawn && g.lastSpawn-int(1600-g.camera.X) < -250 {
 		newPipe := SpawnPipe(randRange(150, 300), int(1600-g.camera.X), randRange(100, 500))
 		g.lastSpawn = int(1600 - g.camera.X)
